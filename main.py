@@ -44,7 +44,7 @@ while running:
         screen.blit(player, dest=player_pos)
 
     if jump_strength > 0:
-        pygame.draw.rect(screen, "blue", (center_player_coord[0]-10, center_player_coord[1] - jump_strength, 20, jump_strength))
+        pygame.draw.rect(screen, "blue", (player_pos[0], player_pos[1] - jump_strength, 20, jump_strength))
     if keys[pygame.K_SPACE]:
         jump_strength += 100 * dt
     if not keys[pygame.K_SPACE]:
