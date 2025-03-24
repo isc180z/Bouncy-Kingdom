@@ -1,70 +1,96 @@
 import pygame
 
-# pygame setup
+# Initialize pygame
 pygame.init()
-screen = pygame.display.set_mode()
-clock = pygame.time.Clock()
+
+# Screen settings
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Platform Example")
+
+# Colors
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+
+# Platform settings
+platforms = [
+    pygame.Rect(WIDTH // 2 - 100, HEIGHT - 100, 200, 20),
+    pygame.Rect(300, 400, 150, 20),
+    pygame.Rect(500, 250, 180, 20)
+]
+
+# Player settings
+player_width, player_height = 50, 50
+player_x, player_y = WIDTH // 2, HEIGHT // 2
+player_speed = 5
+player_vel_y = 0
+gravity = 0.5
+on_ground = False
+player_rect = pygame.Rect(player_x, player_y, player_width, player_height)
+
+# Game loop
 running = True
-dt = 0
-jump_strength = 0
-fond = pygame.image.load("643.jpg")
-player = pygame.image.load("Standing.png")
-keys = pygame.key.get_pressed()
-posx = 0
-posy = 0
-
-player_pos = [screen.get_width() // 2 + posx, screen.get_height() // 2 + posy]
-center_player_coord = [screen.get_width() // 2 + player.get_width() // 2 + posx,
-                       screen.get_height() // 2 + player.get_height() // 2 + posy]
-
 while running:
-    keys = pygame.key.get_pressed()
-
-    # poll for events
-    # pygame.QUIT event means the user clicked X to close your window
+    screen.fill(WHITE)
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    if keys[pygame.K_ESCAPE]:
-        running = False
-    # fill the screen with a color to wipe away anything from last frame
-    screen.blit(fond, (0, 0))
-    player_pos = [screen.get_width() // 2 + posx, screen.get_height() // 2 + posy]
-    center_player_coord = [screen.get_width() // 2 + player.get_width() // 2 + posx,
-                           screen.get_height() // 2 + player.get_height() // 2 + posy]
-
-    screen.blit(player, dest=player_pos)
-    pygame.draw.circle(screen, "green", center_player_coord, 5)
-
-    if player_pos[1] <= screen.get_height() // 2:
-        posy += 100 * dt
-
-    if player_pos[1] == 300:
-        running = False
-        screen.blit(player, dest=player_pos)
-
-    if jump_strength > 0:
-        pygame.draw.rect(screen, "blue", (player_pos[0], player_pos[1] - jump_strength, 20, jump_strength))
-    if keys[pygame.K_SPACE]:
-        jump_strength += 100 * dt
-    if not keys[pygame.K_SPACE]:
-        posy -= jump_strength
-        jump_strength = 0
-    if keys[pygame.K_UP]:
-        posy -= 300 * dt
-    if keys[pygame.K_DOWN] and player_pos[1] <= screen.get_height() // 2:
-        posy += 300 * dt
+    
+    # Player movement
+    keys = pygame.key.get_pressed()
+    player_movement = player_rect.copy()
+    
     if keys[pygame.K_LEFT]:
-        posx -= 300 * dt
+        player_movement.x -= player_speed
     if keys[pygame.K_RIGHT]:
-        posx += 300 * dt
-
-    # flip() the display to put your work on screen
+        player_movement.x += player_speed
+    
+    # Horizontal collision detection
+    for platform in platforms:
+        if player_movement.colliderect(platform):
+            if keys[pygame.K_LEFT] and player_rect.right > platform.left and player_rect.left < platform.left:
+                player_rect.left = platform.left
+            if keys[pygame.K_RIGHT] and player_rect.left < platform.right and player_rect.right > platform.right:
+                player_rect.right = platform.right
+            break
+    else:
+        player_rect.x = player_movement.x
+    
+    # Apply gravity
+    player_vel_y += gravity
+    player_movement.y += player_vel_y
+    
+    # Vertical collision detection
+    on_ground = False
+    for platform in platforms:
+        if player_movement.colliderect(platform):
+            # Landing on top of a platform
+            if player_vel_y > 0 and player_rect.bottom <= platform.top + player_vel_y:
+                player_rect.bottom = platform.top
+                player_vel_y = 0
+                on_ground = True
+            # Hitting the underside of a platform
+            elif player_vel_y < 0 and player_rect.top >= platform.bottom + player_vel_y:
+                player_rect.top = platform.bottom
+                player_vel_y = 0
+            break
+    else:
+        player_rect.y = player_movement.y
+    
+    # Jumping
+    if keys[pygame.K_SPACE] and on_ground:
+        player_vel_y = -10
+    
+    # Draw platforms
+    for platform in platforms:
+        pygame.draw.rect(screen, GREEN, platform)
+    
+    # Draw player
+    pygame.draw.rect(screen, BLUE, player_rect)
+    
     pygame.display.flip()
-
-    # limits FPS to 60
-    # dt is delta time in seconds since last frame, used for framerate-
-    dt = clock.tick(60) / 1000
-
-    pygame.draw
+    pygame.time.delay(30)
+    
 pygame.quit()
