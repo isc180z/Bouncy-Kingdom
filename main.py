@@ -6,6 +6,9 @@ screen = pygame.display.set_mode()
 clock = pygame.time.Clock()
 running = True
 dt = 0
+
+# game setup
+lives = 3
 jump_strength = 0
 fond = pygame.image.load("643.jpg")
 player = pygame.image.load("Standing.png")
@@ -13,6 +16,7 @@ keys = pygame.key.get_pressed()
 posx = 0
 posy = 0
 
+# coordinates
 player_pos = [screen.get_width() // 2 + posx, screen.get_height() // 2 + posy]
 center_player_coord = [screen.get_width() // 2 + player.get_width() // 2 + posx,
                        screen.get_height() // 2 + player.get_height() // 2 + posy]
@@ -33,7 +37,7 @@ while running:
     center_player_coord = [screen.get_width() // 2 + player.get_width() // 2 + posx,
                            screen.get_height() // 2 + player.get_height() // 2 + posy]
 
-    screen.blit(player, dest=player_pos)
+    screen.blit(player, dest = player_pos)
     pygame.draw.circle(screen, "green", center_player_coord, 5)
 
     if player_pos[1] <= screen.get_height() // 2:
