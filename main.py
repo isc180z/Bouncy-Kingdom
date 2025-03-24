@@ -47,20 +47,20 @@ while running:
     if keys[pygame.K_RIGHT]:
         player_movement.x += player_speed
     
-    # Horizontal collision detection
-    for platform in platforms:
-        if player_movement.colliderect(platform):
-            if keys[pygame.K_LEFT] and player_rect.right > platform.left and player_rect.left < platform.left:
-                player_rect.left = platform.left
-            if keys[pygame.K_RIGHT] and player_rect.left < platform.right and player_rect.right > platform.right:
-                player_rect.right = platform.right
-            break
-    else:
-        player_rect.x = player_movement.x
-    
     # Apply gravity
     player_vel_y += gravity
     player_movement.y += player_vel_y
+    
+    # Horizontal collision detection
+    for platform in platforms:
+        if player_movement.colliderect(platform):
+            if player_rect.bottom > platform.top and player_rect.top < platform.bottom:  # Side collision check
+                if player_movement.right > platform.left and player_rect.left < platform.left:
+                    player_movement.right = platform.left
+                elif player_movement.left < platform.right and player_rect.right > platform.right:
+                    player_movement.left = platform.right
+    
+    player_rect.x = player_movement.x  # Apply horizontal movement
     
     # Vertical collision detection
     on_ground = False
@@ -77,12 +77,18 @@ while running:
                 player_vel_y = 0
             break
     else:
-        player_rect.y = player_movement.y
+        player_rect.y = player_movement.y  # Apply vertical movement
+    
+    # Reset position if player falls off the screen
+    if player_rect.top > HEIGHT:
+        player_rect.x = WIDTH // 2
+        player_rect.y = HEIGHT // 2
+        player_vel_y = 0
     
     # Jumping
     if keys[pygame.K_SPACE] and on_ground:
         player_vel_y = -10
-    
+         
     # Draw platforms
     for platform in platforms:
         pygame.draw.rect(screen, GREEN, platform)
