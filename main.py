@@ -7,18 +7,25 @@ clock = pygame.time.Clock()
 running = True
 dt = 0
 
-# game setup
+### game setup
 lives = 3
-jump_strength = 0
-fond = pygame.image.load("643.jpg")
-player = pygame.image.load("standinggirlcropped.png.png")
+g = 2# Gravity
+jumping = False
+fond = pygame.transform.scale(pygame.image.load("643.jpg"),(1000,667))
+screen.blit(fond,(0,0))
+player = pygame.image.load("standinggirlcropped.png")
+playerboi = pygame.image.load("Standing.png")
+playerweight = 50
+playerboiweight = 100
+
+
 keys = pygame.key.get_pressed()
 posx = 0
 posy = 0
+rightfacing = True
 
 #jump setup
-vert_jump = 0
-vertstr = 0
+verstr = 0
 horstr = 0
 velx = 0
 vely = 0
@@ -40,11 +47,25 @@ while running:
         running = False
     # fill the screen with a color to wipe away anything from last frame
     screen.blit(fond, (0, 0))
+    playerboi_pos = [0,0]
     player_pos = [screen.get_width() // 2 + posx, screen.get_height() // 2 + posy]
     center_player_coord = [screen.get_width() // 2 + player.get_width() // 2 + posx,
                            screen.get_height() // 2 + player.get_height() // 2 + posy]
+###update speeds
+    velx = velx*0.9
+    if vely != 0:
+        vely += g
 
+
+###update position
+    posx += velx
+    posy += vely
+
+
+###show character
     screen.blit(player, dest = player_pos)
+    screen.blit(playerboi, dest = playerboi_pos)
+
     pygame.draw.circle(screen, "green", center_player_coord, 5)
 
     if player_pos[1] <= screen.get_height() // 2:
@@ -54,32 +75,36 @@ while running:
         running = False
         screen.blit(player, dest=player_pos)
 
+###Floor
+    pygame.draw.rect(screen, "red", (0, player_pos[1]+player.get_height(), 2500, 4))
 
+###Horizontal jump
 
-    if vertstr > 0:
-        pygame.draw.rect(screen, "red", (player_pos[0], player_pos[1] - jump_strength, 20, jump_strength))
-
-    if keys[pygame.K_g]:
-        vertstr += 100 * dt
-
-    if not keys[pygame.K_g]:
-        posy -= vertstr
-        vertstr = 0
+    if horstr > 0:
+        pygame.draw.rect(screen, "red", (player_pos[0]-horstr, player_pos[1], 20,horstr))
 
     if keys[pygame.K_g]:
-        pygame.draw.circle(screen, "blue", (player_pos[0], player_pos[1]-vertstr),5)
+        horstr += 100 * dt
 
 
 
-    if jump_strength > 0:
-        pygame.draw.rect(screen, "blue", (player_pos[0], player_pos[1] - jump_strength, 20, jump_strength))
+
+    if horstr != 0:
+        pygame.draw.circle(screen, "blue", (player_pos[0]-horstr, player_pos[1]),5)
+
+
+###Vertical jump
+    if verstr != 0:
+        pygame.draw.rect(screen, "blue", (player_pos[0], player_pos[1] - verstr, 20, verstr))
+
+    if keys[pygame.K_r]:
+        verstr += 100 * dt
 
     if keys[pygame.K_SPACE]:
-        jump_strength += 100 * dt
-
-    if not keys[pygame.K_SPACE]:
-        posy -= jump_strength
-        jump_strength = 0
+        vely -= verstr
+        velx -= horstr
+        horstr = 0
+        verstr = 0
 
 
     if keys[pygame.K_UP]:
