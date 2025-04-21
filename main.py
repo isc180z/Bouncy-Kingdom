@@ -1,5 +1,5 @@
 import pygame
-
+from math import *
 # pygame setup
 pygame.init()
 screen = pygame.display.set_mode()
@@ -11,10 +11,17 @@ dt = 0
 lives = 3
 jump_strength = 0
 fond = pygame.image.load("643.jpg")
-player = pygame.image.load("Standing.png")
+player = pygame.image.load("standinggirlcropped.png.png")
 keys = pygame.key.get_pressed()
 posx = 0
 posy = 0
+
+#jump setup
+vert_jump = 0
+vertstr = 0
+horstr = 0
+velx = 0
+vely = 0
 
 # coordinates
 player_pos = [screen.get_width() // 2 + posx, screen.get_height() // 2 + posy]
@@ -47,13 +54,34 @@ while running:
         running = False
         screen.blit(player, dest=player_pos)
 
+
+
+    if vertstr > 0:
+        pygame.draw.rect(screen, "red", (player_pos[0], player_pos[1] - jump_strength, 20, jump_strength))
+
+    if keys[pygame.K_g]:
+        vertstr += 100 * dt
+
+    if not keys[pygame.K_g]:
+        posy -= vertstr
+        vertstr = 0
+
+    if keys[pygame.K_g]:
+        pygame.draw.circle(screen, "blue", (player_pos[0], player_pos[1]-vertstr),5)
+
+
+
     if jump_strength > 0:
         pygame.draw.rect(screen, "blue", (player_pos[0], player_pos[1] - jump_strength, 20, jump_strength))
+
     if keys[pygame.K_SPACE]:
         jump_strength += 100 * dt
+
     if not keys[pygame.K_SPACE]:
         posy -= jump_strength
         jump_strength = 0
+
+
     if keys[pygame.K_UP]:
         posy -= 300 * dt
     if keys[pygame.K_DOWN] and player_pos[1] <= screen.get_height() // 2:
