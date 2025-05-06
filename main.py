@@ -89,8 +89,6 @@ while running:
         horstr += 10 * dt
 
 
-
-
     if horstr != 0:
         pygame.draw.circle(screen, "blue", (player_pos[0]-horstr, player_pos[1]),5)
 
