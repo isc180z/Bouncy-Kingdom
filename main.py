@@ -68,8 +68,10 @@ while running:
 
     pygame.draw.circle(screen, "green", center_player_coord, 5)
 
-    if player_pos[1] <= screen.get_height() // 2:
-        posy += 100 * dt
+    if player_pos[1] < screen.get_height() // 2:
+        print(player_pos)
+        print(screen.get_height() // 2 )
+        vely = 0
 
     if player_pos[1] == 300:
         running = False
@@ -84,7 +86,7 @@ while running:
         pygame.draw.rect(screen, "red", (player_pos[0]-horstr, player_pos[1], 20,horstr))
 
     if keys[pygame.K_g]:
-        horstr += 100 * dt
+        horstr += 10 * dt
 
 
 
