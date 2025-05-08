@@ -22,7 +22,7 @@ playerboiweight = 100
 keys = pygame.key.get_pressed()
 posx = 0
 posy = 0
-rightfacing = True
+rightfacing = 1
 
 #jump setup
 verstr = 0
@@ -34,6 +34,9 @@ vely = 0
 player_pos = [screen.get_width() // 2 + posx, screen.get_height() // 2 + posy]
 center_player_coord = [screen.get_width() // 2 + player.get_width() // 2 + posx,
                        screen.get_height() // 2 + player.get_height() // 2 + posy]
+
+# gameplay practicality 
+delay = 0
 
 while running:
     keys = pygame.key.get_pressed()
@@ -80,25 +83,23 @@ while running:
 ###Floor
     pygame.draw.rect(screen, "red", (0, player_pos[1]+player.get_height(), 2500, 4))
 
+    if horstr > 0 or verstr > 0:
+        pygame.draw.line(screen,"brown",(center_player_coord),(center_player_coord[0]-horstr,center_player_coord[1]-verstr),4)
+
 ###Horizontal jump
 
-    if horstr > 0:
-        pygame.draw.rect(screen, "red", (player_pos[0]-horstr, player_pos[1], 20,horstr))
+    if keys[pygame.K_c]:
+        horstr += 50 * dt * rightfacing
 
-    if keys[pygame.K_g]:
-        horstr += 10 * dt
-
-
-    if horstr != 0:
-        pygame.draw.circle(screen, "blue", (player_pos[0]-horstr, player_pos[1]),5)
 
 
 ###Vertical jump
-    if verstr != 0:
-        pygame.draw.rect(screen, "blue", (player_pos[0], player_pos[1] - verstr, 20, verstr))
+    if keys[pygame.K_v]:
+        verstr += 50 * dt
 
     if keys[pygame.K_r]:
-        verstr += 100 * dt
+        verstr = 0
+        horstr = 0
 
     if keys[pygame.K_SPACE]:
         vely -= verstr
@@ -106,15 +107,28 @@ while running:
         horstr = 0
         verstr = 0
 
+    if delay > 0:
+        delay-=1
 
-    if keys[pygame.K_UP]:
-        posy -= 300 * dt
-    if keys[pygame.K_DOWN] and player_pos[1] <= screen.get_height() // 2:
-        posy += 300 * dt
-    if keys[pygame.K_LEFT]:
-        posx -= 300 * dt
-    if keys[pygame.K_RIGHT]:
-        posx += 300 * dt
+    if keys[pygame.K_LEFT] and delay == 0:
+        horstr = abs(horstr)
+        rightfacing = 1
+        delay = 10
+
+    if keys[pygame.K_RIGHT] and delay == 0:
+        horstr = -abs(horstr)
+        rightfacing = -1
+        delay = 10
+
+
+    #if keys[pygame.K_UP]:
+    #    posy -= 300 * dt
+    #if keys[pygame.K_DOWN] and player_pos[1] <= screen.get_height() // 2:
+    #    posy += 300 * dt
+    #if keys[pygame.K_LEFT]:
+    #    posx -= 300 * dt
+    #if keys[pygame.K_RIGHT]:
+    #    posx += 300 * dt
 
     # flip() the display to put your work on screen
     pygame.display.flip()
