@@ -7,9 +7,14 @@ clock = pygame.time.Clock()
 running = True
 dt = 0
 
+### main menu characteristic
+Queen = 1
+pointer = 0
+
+
 ### game setup
 lives = 3
-g = 2# Gravity
+g = 2     # Gravity
 jumping = False
 fond = pygame.transform.scale(pygame.image.load("643.jpg"),(1000,667))
 screen.blit(fond,(0,0))
@@ -37,6 +42,72 @@ center_player_coord = [screen.get_width() // 2 + player.get_width() // 2 + posx,
 
 # gameplay practicality 
 delay = 0
+#    if delay > 0:
+#        delay-=1
+
+def main_menu():
+    pygame.display.set_caption("Menu") 
+
+
+    running = True
+    pointer = 0
+
+
+    while running:
+        keys = pygame.key.get_pressed()
+        menu_mouse_pos = pygame.mouse.get_pos()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        screen.blit(fond, (0, 0))
+
+        colorabove = (50,230,60)
+        colorright = (50,230,60)
+        colorbelow = (50,230,60)
+        colorleft = (50,230,60)
+
+        playbutton = 
+        girlchoice = 
+        boychoice =
+        options = 
+
+        if keys[pygame.K_UP]:
+            pointer = 1
+        if keys[pygame.K_RIGHT]:
+            pointer = 2
+        if keys[pygame.K_DOWN]:
+            pointer = 3
+        if keys[pygame.K_LEFT]:
+            pointer = 4
+
+
+        if pointer == 1:
+            colorabove = (50,150,60)
+            playbutton = 
+        elif pointer == 2:
+            colorright = (50,150,60)
+            girlchoice = 
+        elif pointer == 3:
+            colorbelow = (50,150,60)
+            boychoice = 
+        elif pointer == 4:
+            colorleft = (50,150,60)
+            options =
+
+        pygame.draw.rect(screen,"blue",(screen.get_width() // 2,screen.get_height() // 2,50,50))
+        pygame.draw.rect(screen,colorabove,(screen.get_width() // 2,screen.get_height() // 2 - 50,50,50))
+        pygame.draw.rect(screen,colorright,(screen.get_width() // 2 +50,screen.get_height() // 2,50,50))
+        pygame.draw.rect(screen,colorbelow,(screen.get_width() // 2,screen.get_height() // 2 + 50,50,50))
+        pygame.draw.rect(screen,colorleft,(screen.get_width() // 2 - 50,screen.get_height() // 2,50,50))
+
+
+
+        pygame.display.flip()
+
+
+main_menu()
+
+running = True
 
 while running:
     keys = pygame.key.get_pressed()
@@ -107,18 +178,15 @@ while running:
         horstr = 0
         verstr = 0
 
-    if delay > 0:
-        delay-=1
 
     if keys[pygame.K_LEFT] and delay == 0:
         horstr = abs(horstr)
         rightfacing = 1
-        delay = 10
 
     if keys[pygame.K_RIGHT] and delay == 0:
         horstr = -abs(horstr)
         rightfacing = -1
-        delay = 10
+        
 
 
     #if keys[pygame.K_UP]:
