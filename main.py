@@ -4,127 +4,55 @@ from math import *
 pygame.init()
 screen = pygame.display.set_mode()
 clock = pygame.time.Clock()
-running = True
 dt = 0
-
-### main menu characteristic
-Queen = 1
-pointer = 0
+fond = pygame.transform.scale(pygame.image.load("643.jpg"),(screen.get_width(),screen.get_height()))
 
 
-### game setup
-lives = 3
-g = 2     # Gravity
-jumping = False
-fond = pygame.transform.scale_by(pygame.image.load("643.jpg"), 1.4)
-
-screen.blit(fond,(0,0))
-player = pygame.image.load("standinggirlcropped.png")
-playerboi = pygame.image.load("Standing.png")
-playerweight = 50
-playerboiweight = 100
 
 
-keys = pygame.key.get_pressed()
-posx = 0
-posy = 0
-rightfacing = 1
 
-#jump setup
-verstr = 0
-horstr = 0
-velx = 0
-vely = 0
-
-# coordinates
-player_pos = [screen.get_width() // 2 + posx, screen.get_height() // 2 + posy]
-center_player_coord = [screen.get_width() // 2 + player.get_width() // 2 + posx,
-                       screen.get_height() // 2 + player.get_height() // 2 + posy]
-
-# gameplay practicality 
-delay = 0
-#    if delay > 0:
-#        delay-=1
-
-def main_menu():
-    pygame.display.set_caption("Menu") 
-
-
+def game(queen):
     running = True
-    pointer = 0
+    clock = pygame.time.Clock()
+    dt = 0
+
+    # gameplay practicality 
+    delay = 0
+    #    if delay > 0:
+    #        delay-=1
+
+    ### game setup
+    lives = 3
+    g = 2     # Gravity
+    jumping = False
+
+    # Character selection
+    screen.blit(fond,(0,0))
+    if queen: 
+        player = pygame.transform.scale(pygame.image.load("princesseeeeeeee.png"),(60,100))
+        playerweight = 50
+    else :
+        player = pygame.transform.scale(pygame.image.load("Prince_png.png"),(50,100))
+        playerweight = 100
 
 
-    while running:
-        keys = pygame.key.get_pressed()
-        menu_mouse_pos = pygame.mouse.get_pos()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-        screen.blit(fond, (0, 0))
+    keys = pygame.key.get_pressed()
+    posx = 0
+    posy = 0
+    rightfacing = 1
 
-        colorabove = (50,230,60)
-        colorright = (50,230,60)
-        colorbelow = (50,230,60)
-        colorleft = (50,230,60)
+    #jump setup
+    verstr = 0
+    horstr = 0
+    velx = 0
+    vely = 0
 
-        playbutton = pygame.image.load("Play_pas_appuye_DECOUPE.png")
-        girldisplay = pygame.image.load("princesseeeeeeee.png")
-        boydisplay =pygame.image.load("Prince_png.png")
-        options = pygame.image.load("rouage_a_decouper.png")
-        options_size = (240,240)
+    # coordinates
+    player_pos = [screen.get_width() // 2 + posx, screen.get_height() // 2 + posy]
+    center_player_coord = [screen.get_width() // 2 + player.get_width() // 2 + posx,
+                        screen.get_height() // 2 + player.get_height() // 2 + posy]
 
 
-        if keys[pygame.K_UP]:
-            pointer = 1
-        if keys[pygame.K_RIGHT]:
-            pointer = 2
-        if keys[pygame.K_DOWN]:
-            pointer = 3
-        if keys[pygame.K_LEFT]:
-            pointer = 4
-
-
-        if pointer == 1:
-            colorabove = (50,150,60)
-            playbutton = pygame.image.load("play_appuye_DECOUPE.png")
-
-
-        elif pointer == 2:
-            colorright = (50,150,60)
-            girldisplay = pygame.transform.grayscale(girldisplay)
-
-        elif pointer == 3:
-            colorbelow = (50,150,60)
-            options_size = (280,280)
-
-        elif pointer == 4:
-            colorleft = (50,150,60)
-            boydisplay = pygame.transform.grayscale(boydisplay)
-
-
-        
-        screen.blit(pygame.transform.scale(playbutton,(600,240)),dest=(screen.get_width()//2-1.2*playbutton.get_width()//2,30))
-        screen.blit(pygame.transform.scale(options,(options_size)),dest=(screen.get_width()//2-options_size[0]//2,screen.get_height()-options.get_height()))
-        screen.blit(pygame.transform.scale_by(girldisplay,1),dest=(30,screen.get_height()//3))
-        screen.blit(pygame.transform.scale_by(boydisplay,1),dest=(screen.get_width()-boydisplay.get_width()-30,screen.get_height()//3))
-
-
-        pygame.draw.rect(screen,"blue",(screen.get_width() // 2,screen.get_height() // 2,50,50))
-        pygame.draw.rect(screen,colorabove,(screen.get_width() // 2,screen.get_height() // 2 - 50,50,50))
-        pygame.draw.rect(screen,colorright,(screen.get_width() // 2 +50,screen.get_height() // 2,50,50))
-        pygame.draw.rect(screen,colorbelow,(screen.get_width() // 2,screen.get_height() // 2 + 50,50,50))
-        pygame.draw.rect(screen,colorleft,(screen.get_width() // 2 - 50,screen.get_height() // 2,50,50))
-
-
-
-        pygame.display.flip()
-
-
-main_menu()
-
-
-def game(player):
-    running = True
     while running:
         keys = pygame.key.get_pressed()
 
@@ -154,7 +82,6 @@ def game(player):
 
     ###show character
         screen.blit(player, dest = player_pos)
-        screen.blit(playerboi, dest = playerboi_pos)
 
         pygame.draw.circle(screen, "green", center_player_coord, 5)
 
@@ -205,14 +132,14 @@ def game(player):
             
 
 
-        #if keys[pygame.K_UP]:
-        #    posy -= 300 * dt
-        #if keys[pygame.K_DOWN] and player_pos[1] <= screen.get_height() // 2:
-        #    posy += 300 * dt
-        #if keys[pygame.K_LEFT]:
-        #    posx -= 300 * dt
-        #if keys[pygame.K_RIGHT]:
-        #    posx += 300 * dt
+        if keys[pygame.K_UP]:
+            posy -= 300 * dt
+        if keys[pygame.K_DOWN] and player_pos[1] <= screen.get_height() // 2:
+            posy += 300 * dt
+        if keys[pygame.K_LEFT]:
+            posx -= 300 * dt
+        if keys[pygame.K_RIGHT]:
+            posx += 300 * dt
 
         # flip() the display to put your work on screen
         pygame.display.flip()
@@ -222,4 +149,108 @@ def game(player):
         dt = clock.tick(60) / 1000
 
         pygame.draw
+
+
+
+
+
+
+def main_menu():
+    pygame.display.set_caption("Menu") 
+    running = True
+    Queen = 1
+    pointer = 0
+    playbutton = pygame.image.load("Play_pas_appuye_DECOUPE.png")
+    girldisplay = pygame.image.load("princesseeeeeeee.png")
+    girlsize = 1
+    boydisplay =pygame.image.load("Prince_png.png")
+    boysize = 1
+    options = pygame.image.load("rouage_a_decouper.png")
+
+    while running:
+        global game
+        keys = pygame.key.get_pressed()
+        menu_mouse_pos = pygame.mouse.get_pos()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        screen.blit(fond, (0, 0))
+
+        colorabove = (50,230,60)
+        colorright = (50,230,60)
+        colorbelow = (50,230,60)
+        colorleft = (50,230,60)
+
+
+        playbutton = pygame.image.load("Play_pas_appuye_DECOUPE.png")
+        girldisplay = pygame.image.load("princesseeeeeeee.png")
+        boydisplay =pygame.image.load("Prince_png.png")
+        options = pygame.image.load("rouage_a_decouper.png")
+        options_size = (240,240)
+
+
+        if keys[pygame.K_UP]:
+            pointer = 1
+        if keys[pygame.K_RIGHT]:
+            pointer = 2
+        if keys[pygame.K_DOWN]:
+            pointer = 3
+        if keys[pygame.K_LEFT]:
+            pointer = 4
+
+
+        if pointer == 1:
+            colorabove = (50,150,60)
+            playbutton = pygame.image.load("play_appuye_DECOUPE.png")
+            if keys[pygame.K_SPACE]:
+                game(Queen)
+
+        elif pointer == 2:
+            colorright = (50,150,60)
+            girldisplay = pygame.transform.grayscale(girldisplay)
+            if keys[pygame.K_SPACE]:
+                Queen = 0
+                girlsize = 1
+                boysize = 1.2
+
+        elif pointer == 3:
+            colorbelow = (50,150,60)
+            options_size = (280,280)
+            if keys[pygame.K_SPACE]:
+                running = False
+
+
+        elif pointer == 4:
+            colorleft = (50,150,60)
+            boydisplay = pygame.transform.grayscale(boydisplay)
+            if keys[pygame.K_SPACE]:
+                Queen = 1
+                boysize = 1
+                girlsize = 1.2
+        
+
+
+        
+        screen.blit(pygame.transform.scale(playbutton,(600,240)),dest=(screen.get_width()//2-1.2*playbutton.get_width()//2,30))
+        screen.blit(pygame.transform.scale(options,(options_size)),dest=(screen.get_width()//2-options_size[0]//2,screen.get_height()-options.get_height()))
+        screen.blit(pygame.transform.scale_by(girldisplay,girlsize),dest=(30,screen.get_height()//3))
+        screen.blit(pygame.transform.scale_by(boydisplay,boysize),dest=(screen.get_width()-boydisplay.get_width()-30,screen.get_height()//3))
+
+
+        pygame.draw.rect(screen,"blue",(screen.get_width() // 2,screen.get_height() // 2,50,50))
+        pygame.draw.rect(screen,colorabove,(screen.get_width() // 2,screen.get_height() // 2 - 50,50,50))
+        pygame.draw.rect(screen,colorright,(screen.get_width() // 2 +50,screen.get_height() // 2,50,50))
+        pygame.draw.rect(screen,colorbelow,(screen.get_width() // 2,screen.get_height() // 2 + 50,50,50))
+        pygame.draw.rect(screen,colorleft,(screen.get_width() // 2 - 50,screen.get_height() // 2,50,50))
+
+
+
+        pygame.display.flip()
+
+
+main_menu()
+game()
+
+
 pygame.quit()
