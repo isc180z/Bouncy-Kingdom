@@ -67,7 +67,7 @@ def main_menu():
         colorbelow = (50,230,60)
         colorleft = (50,230,60)
 
-        playbutton = pygame.image.load("PlayButton (1) (1).png")
+        playbutton = pygame.image.load("Play_pas_appuye_DECOUPE.png")
      #   girlchoice = 
     #    boychoice =
       #  options = 
@@ -84,7 +84,7 @@ def main_menu():
 
         if pointer == 1:
             colorabove = (50,150,60)
-            playbutton = pygame.image.load("PlayButtonFocused (1) (1).png")
+            playbutton = pygame.image.load("play_appuye_DECOUPE.png")
         elif pointer == 2:
             colorright = (50,150,60)
         #    girlchoice = 
