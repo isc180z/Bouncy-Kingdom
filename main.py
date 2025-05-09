@@ -68,9 +68,11 @@ def main_menu():
         colorleft = (50,230,60)
 
         playbutton = pygame.image.load("Play_pas_appuye_DECOUPE.png")
-     #   girlchoice = 
-    #    boychoice =
-      #  options = 
+        girldisplay = pygame.image.load("princesseeeeeeee.png")
+        boydisplay =pygame.image.load("Prince_png.png")
+        options = pygame.image.load("rouage_a_decouper.png")
+        options_size = (240,240)
+
 
         if keys[pygame.K_UP]:
             pointer = 1
@@ -85,17 +87,27 @@ def main_menu():
         if pointer == 1:
             colorabove = (50,150,60)
             playbutton = pygame.image.load("play_appuye_DECOUPE.png")
+
+
         elif pointer == 2:
             colorright = (50,150,60)
-        #    girlchoice = 
+            girldisplay = pygame.transform.grayscale(girldisplay)
+
         elif pointer == 3:
             colorbelow = (50,150,60)
-        #   boychoice = 
+            options_size = (280,280)
+
         elif pointer == 4:
             colorleft = (50,150,60)
-         #   options =
+            boydisplay = pygame.transform.grayscale(boydisplay)
+
+
         
-        screen.blit(pygame.transform.scale(playbutton,(600,240)),dest=(screen.get_width()//2-5*playbutton.get_width()//2,30))
+        screen.blit(pygame.transform.scale(playbutton,(600,240)),dest=(screen.get_width()//2-1.2*playbutton.get_width()//2,30))
+        screen.blit(pygame.transform.scale(options,(options_size)),dest=(screen.get_width()//2-options_size[0]//2,screen.get_height()-options.get_height()))
+        screen.blit(pygame.transform.scale_by(girldisplay,1),dest=(30,screen.get_height()//3))
+        screen.blit(pygame.transform.scale_by(boydisplay,1),dest=(screen.get_width()-boydisplay.get_width()-30,screen.get_height()//3))
+
 
         pygame.draw.rect(screen,"blue",(screen.get_width() // 2,screen.get_height() // 2,50,50))
         pygame.draw.rect(screen,colorabove,(screen.get_width() // 2,screen.get_height() // 2 - 50,50,50))
