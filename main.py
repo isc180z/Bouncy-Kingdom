@@ -62,9 +62,13 @@ def game(queen):
     screen.blit(fond,(0,0))
     if queen: 
         player = pygame.transform.scale(pygame.image.load("princesseeeeeeee.png"),(60,100))
+        playerleft = pygame.transform.scale(pygame.image.load("princesseeeeeeee.png"),(60,100))
+        playerright = pygame.transform.flip(player,1,0)
         playerweight = 80
     else :
         player = pygame.transform.scale(pygame.image.load("Prince_png.png"),(50,100))
+        playerleft = pygame.transform.scale(pygame.image.load("Prince_png.png"),(50,100))
+        playerright = pygame.transform.flip(player,1,0)
         playerweight = 100
 
 
@@ -158,11 +162,12 @@ def game(queen):
         if keys[pygame.K_LEFT] and delay == 0:
             horstr = abs(horstr)
             rightfacing = 1
+            player = playerleft 
 
         if keys[pygame.K_RIGHT] and delay == 0:
             horstr = -abs(horstr)
             rightfacing = -1
-            
+            player = playerright
 
 
         if keys[pygame.K_UP]:
@@ -252,7 +257,7 @@ def main_menu():
             colorbelow = (50,150,60)
             options_size = (280,280)
             if keys[pygame.K_SPACE]:
-                how_to_play( )
+                how_to_play()
 
 
         elif pointer == 4:
