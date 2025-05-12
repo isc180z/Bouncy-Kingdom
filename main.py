@@ -5,7 +5,7 @@ pygame.init()
 screen = pygame.display.set_mode()
 clock = pygame.time.Clock()
 dt = 0
-fond = pygame.transform.scale(pygame.image.load("BackGround.png.png"),(screen.get_width(),screen.get_height()))
+fond = pygame.transform.scale(pygame.image.load("BackGround.png"),(screen.get_width(),screen.get_height()))
 
 def character_selection_screen():
     selected = None
