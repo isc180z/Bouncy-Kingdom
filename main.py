@@ -7,6 +7,38 @@ clock = pygame.time.Clock()
 dt = 0
 fond = pygame.transform.scale(pygame.image.load("643.jpg"),(screen.get_width(),screen.get_height()))
 
+def how_to_play():
+    running = True
+    screen.blit(fond, (0, 0))
+    black = (0, 0, 0)
+    keys = pygame.key.get_pressed()
+    pygame.display.set_caption("Bouncy Kingdom")
+    myfont = pygame.font.SysFont("Arial", 50)
+
+    while running:
+        labelC = myfont.render("Press C to increase horizontal strength", 1, black)
+        labelV = myfont.render("Press V to increase vertical strength", 1, black)
+        labelR = myfont.render("Press R to reset any strength", 1, black)
+        labelSpace = myfont.render("Press Spacebar to jump", 1, black)
+
+        if keys[pygame.K_ESCAPE]:
+            running = False
+
+        # put the label object on the screen at point x=100, y=100
+        screen.blit(labelC, (450, 200))
+        screen.blit(labelV, (470, 300))
+        screen.blit(labelR, (520, 400))
+        screen.blit(labelSpace, (550, 500))
+
+        # show the whole thing
+        pygame.display.flip()
+
+        # event loop
+        while True:
+            for event in pygame.event.get():
+                # exit conditions --> windows titlebar x click
+                if event.type == pygame.QUIT:
+                    raise SystemExit
 
 
 
@@ -15,6 +47,8 @@ def game(queen):
     running = True
     clock = pygame.time.Clock()
     dt = 0
+    pygame.display.set_caption("Bouncy Kingdom")
+
 
     # gameplay practicality 
     delay = 0
@@ -30,7 +64,7 @@ def game(queen):
     screen.blit(fond,(0,0))
     if queen: 
         player = pygame.transform.scale(pygame.image.load("princesseeeeeeee.png"),(60,100))
-        playerweight = 50
+        playerweight = 80
     else :
         player = pygame.transform.scale(pygame.image.load("Prince_png.png"),(50,100))
         playerweight = 100
@@ -56,21 +90,21 @@ def game(queen):
     while running:
         keys = pygame.key.get_pressed()
 
-        # poll for events
-        # pygame.QUIT event means the user clicked X to close your window
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
         if keys[pygame.K_ESCAPE]:
             running = False
-        # fill the screen with a color to wipe away anything from last frame
+
+
         screen.blit(fond, (0, 0))
+
         playerboi_pos = [0,0]
         player_pos = [screen.get_width() // 2 + posx, screen.get_height() // 2 + posy]
         center_player_coord = [screen.get_width() // 2 + player.get_width() // 2 + posx,
                             screen.get_height() // 2 + player.get_height() // 2 + posy]
     ###update speeds
-        velx = velx*0.9
+        velx = velx*0.8
         if vely != 0:
             vely += g
 
@@ -97,8 +131,8 @@ def game(queen):
     ###Floor
         pygame.draw.rect(screen, "red", (0, player_pos[1]+player.get_height(), 2500, 4))
 
-        if horstr > 0 or verstr > 0:
-            pygame.draw.line(screen,"brown",(center_player_coord),(center_player_coord[0]-horstr,center_player_coord[1]-verstr),4)
+        if horstr != 0 or verstr != 0:
+            pygame.draw.line(screen,"brown",(center_player_coord),(center_player_coord[0]-horstr,center_player_coord[1]-verstr/1000),4)
 
     ###Horizontal jump
 
@@ -109,15 +143,15 @@ def game(queen):
 
     ###Vertical jump
         if keys[pygame.K_v]:
-            verstr += 50 * dt
+            verstr += 500000 * dt
 
         if keys[pygame.K_r]:
             verstr = 0
             horstr = 0
 
         if keys[pygame.K_SPACE]:
-            vely -= verstr
-            velx -= horstr
+            vely -= sqrt(2*verstr/playerweight)
+            velx -= sqrt(2*horstr/playerweight)
             horstr = 0
             verstr = 0
 
@@ -156,7 +190,7 @@ def game(queen):
 
 
 def main_menu():
-    pygame.display.set_caption("Menu") 
+    pygame.display.set_caption("Bouncy Kingdom")
     running = True
     Queen = 1
     pointer = 0
@@ -174,6 +208,7 @@ def main_menu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+                
 
         screen.blit(fond, (0, 0))
 
@@ -218,7 +253,7 @@ def main_menu():
             colorbelow = (50,150,60)
             options_size = (280,280)
             if keys[pygame.K_SPACE]:
-                running = False
+                how_to_play( )
 
 
         elif pointer == 4:
