@@ -20,7 +20,6 @@ platform = Platform(300, 500, 200, 20)
 
 
 
-
 def how_to_play():
     running = True
     screen.blit(fond, (0, 0))
