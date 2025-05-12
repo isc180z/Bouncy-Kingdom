@@ -12,7 +12,6 @@ background= pygame.transform.scale(pygame.image.load("643.jpg"), (SCREEN_WIDTH, 
 
 # Définir la fenêtre en plein écran avec les dimensions de l'écran
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
-
 pygame.display.set_caption("Jeu de Plateforme")
 clock = pygame.time.Clock()
 
@@ -234,7 +233,7 @@ while running:
     if player_pos.y - player_radius > SCREEN_HEIGHT:
         show_end_screen("Game Over ! Voulez-vous rejouer ?")
 
-    screen.fill((20, 20, 20))
+    screen.fill(BACKGROUND_COLOR)
     pygame.draw.circle(screen, PLAYER_COLOR, (int(player_pos.x), int(player_pos.y)), player_radius)
     for idx, plat in enumerate(current_level.platforms):
         color = MOVING_PLATFORM_COLOR if idx in current_level.moving_platforms else PLATFORM_COLOR
