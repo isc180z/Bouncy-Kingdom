@@ -5,7 +5,24 @@ pygame.init()
 screen = pygame.display.set_mode()
 clock = pygame.time.Clock()
 dt = 0
-fond = pygame.transform.scale(pygame.image.load("BackGround.png"),(screen.get_width(),screen.get_height()))
+fond = pygame.transform.scale(pygame.image.load("BackGround.png.png"),(screen.get_width(),screen.get_height()))
+
+def character_selection_screen():
+    selected = None
+    while selected is None:
+        screen.fill((0, 0, 0))
+        for i, img in enumerate(character_options):
+            rect = img.get_rect(center=(200 + i * 300, 300))
+            screen.blit(img, rect)
+            if rect.collidepoint(pygame.mouse.get_pos()):
+                if pygame.mouse.get_pressed()[0]:
+                    selected = img
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+    return selected
 
 class Platform:
     def __init__(self, x, y, width, height, color=(0, 255, 0)):
@@ -210,6 +227,7 @@ def game(queen):
 def main_menu():
     pygame.display.set_caption("Bouncy Kingdom")
     running = True
+    player_image = character_selection_screen()
     Queen = 1
     pointer = 0
     playbutton = pygame.image.load("Play_pas_appuye_DECOUPE.png")
