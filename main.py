@@ -1,328 +1,257 @@
 import pygame
-from math import *
-# pygame setup
-pygame.init()
-screen = pygame.display.set_mode()
-clock = pygame.time.Clock()
-dt = 0
-fond = pygame.transform.scale(pygame.image.load("BackGround.png"),(screen.get_width(),screen.get_height()))
+import sys
+import random
 
-def character_selection_screen():
-    selected = None
-    while selected is None:
-        screen.fill((0, 0, 0))
-        for i, img in enumerate(character_options):
-            rect = img.get_rect(center=(200 + i * 300, 300))
-            screen.blit(img, rect)
-            if rect.collidepoint(pygame.mouse.get_pos()):
-                if pygame.mouse.get_pressed()[0]:
-                    selected = img
-        pygame.display.flip()
+# Initialisation de Pygame
+pygame.init()
+
+# Obtenir les dimensions de l'écran de l'utilisateur
+info = pygame.display.Info()
+SCREEN_WIDTH, SCREEN_HEIGHT = info.current_w, info.current_h
+
+# Définir la fenêtre en plein écran avec les dimensions de l'écran
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+pygame.display.set_caption("Jeu de Plateforme")
+clock = pygame.time.Clock()
+
+# Couleurs
+BACKGROUND_COLOR = (20, 20, 20)
+PLAYER_COLOR = (255, 150, 100)
+PLATFORM_COLOR = (180, 180, 180)
+MOVING_PLATFORM_COLOR = (100, 180, 255)
+TEXT_COLOR = (255, 255, 255)
+FLOATING_TEXT_COLOR = (0, 255, 0)
+
+# Joueur
+player_radius = 20
+player_pos = pygame.Vector2(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150)
+player_vel = pygame.Vector2(0, 0)
+can_jump = False
+
+# Gravité
+gravity = 900
+
+# Ensemble pour suivre les plateformes déjà visitées
+visited_platforms = set()
+
+# Compteur de victoires
+wins = 0
+
+# Liste pour les textes flottants
+floating_texts = []
+
+# Niveaux
+class Level:
+    def __init__(self, platform_count, vertical_spacing, mobile_indices):
+        self.platform_count = platform_count
+        self.vertical_spacing = vertical_spacing
+        self.mobile_indices = mobile_indices
+        self.generate_platforms()
+
+    def generate_platforms(self):
+        self.platforms = []
+        self.moving_platforms = {}
+        y = SCREEN_HEIGHT - 100
+        last_x = SCREEN_WIDTH // 2
+        for i in range(self.platform_count):
+            width = random.randint(100, 200)
+            while True:
+                x_offset = random.randint(-150, 150)
+                new_x = max(0, min(SCREEN_WIDTH - width, last_x + x_offset))
+                overlap = any(abs(new_x - plat.x) < 80 and abs(y - plat.y) < 40 for plat in self.platforms)
+                if not overlap:
+                    break
+            plat = pygame.Rect(new_x, y, width, 20)
+            self.platforms.append(plat)
+            if i in self.mobile_indices:
+                self.moving_platforms[i] = [100, 1]  # Vitesse et direction
+            last_x = new_x
+            y -= self.vertical_spacing
+        # Ajouter une plateforme de départ
+        self.platforms.insert(0, pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT - 50, 200, 20))
+
+    def update_moving_platforms(self, dt):
+        for idx, (speed, direction) in self.moving_platforms.items():
+            plat = self.platforms[idx]
+            plat.x += speed * direction * dt
+            if plat.left < 0 or plat.right > SCREEN_WIDTH:
+                self.moving_platforms[idx][1] *= -1
+
+# Définir les niveaux
+levels = [
+    Level(10, 120, []),  # Niveau 1 : 10 plateformes fixes
+    Level(15, 120, [2, 5, 8]),  # Niveau 2 : 15 plateformes, certaines mobiles
+    Level(20, 120, list(range(20)))  # Niveau 3 : 20 plateformes, toutes mobiles
+]
+current_level_index = 0
+current_level = levels[current_level_index]
+platforms_reached = 0
+required_platforms = [10, 15, 20]
+game_over = False
+
+# Police pour le texte
+font = pygame.font.SysFont(None, 36)
+
+def draw_text(text, x, y, color=TEXT_COLOR):
+    img = font.render(text, True, color)
+    screen.blit(img, (x, y))
+
+def draw_controls():
+    controls_text = [
+        "Commandes:",
+        "← : Aller à gauche",
+        "→ : Aller à droite",
+        "Espace : Sauter",
+        "Échap : Quitter le jeu"
+    ]
+    for i, line in enumerate(controls_text):
+        draw_text(line, 10, SCREEN_HEIGHT - 150 + i * 30)
+
+class FloatingText:
+    def __init__(self, text, position, color, duration=1.0):
+        self.text = text
+        self.position = position
+        self.color = color
+        self.duration = duration
+        self.start_time = pygame.time.get_ticks()
+
+    def draw(self, surface):
+        elapsed_time = (pygame.time.get_ticks() - self.start_time) / 1000
+        if elapsed_time < self.duration:
+            font = pygame.font.SysFont(None, 36)
+            text_surface = font.render(self.text, True, self.color)
+            surface.blit(text_surface, (self.position.x + 30, self.position.y - 30))
+            return True
+        return False
+
+def plateforme_collision(position, velocity, radius):
+    global can_jump, platforms_reached, visited_platforms, floating_texts
+    rect = pygame.Rect(position.x - radius, position.y - radius, radius * 2, radius * 2)
+    for idx, plat in enumerate(current_level.platforms):
+        if rect.colliderect(plat):
+            if velocity.y >= 0 and position.y < plat.top and plat.left + 5 < position.x < plat.right - 5:
+                position.y = plat.top - radius
+                velocity.y = -velocity.y * 0.5  # Rebond
+                can_jump = True
+                if idx not in visited_platforms:
+                    visited_platforms.add(idx)
+                    platforms_reached += 1
+                    floating_texts.append(FloatingText("+1", position.copy(), FLOATING_TEXT_COLOR))
+                if idx in current_level.moving_platforms:
+                    current_level.moving_platforms[idx][0] = 0
+            else:
+                if position.x < plat.left:
+                    position.x = plat.left - radius
+                    velocity.x = 0
+                elif position.x > plat.right:
+                    position.x = plat.right + radius
+                    velocity.x = 0
+                elif position.y > plat.bottom:
+                    position.y = plat.bottom + radius
+                    velocity.y = 0
+    return position, velocity
+
+def check_level_completion():
+    global current_level_index, current_level, platforms_reached, player_pos, player_vel, can_jump, game_over, visited_platforms, wins
+    if platforms_reached >= required_platforms[current_level_index]:
+        if current_level_index + 1 < len(levels):
+            current_level_index += 1
+            current_level = levels[current_level_index]
+            platforms_reached = 0
+            visited_platforms = set()
+            player_pos.update(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150)
+            player_vel.update(0, 0)
+            can_jump = False
+        else:
+            wins += 1
+            show_end_screen("Vous avez gagné !")
+
+def show_end_screen(message):
+    global current_level_index, current_level, platforms_reached, player_pos, player_vel, can_jump, visited_platforms, game_over, floating_texts
+    screen.fill(BACKGROUND_COLOR)
+    draw_text(message, SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 60)
+    draw_text("Appuyez sur R pour rejouer ou Échap pour quitter", SCREEN_WIDTH // 2 - 200, SCREEN_HEIGHT // 2)
+    pygame.display.flip()
+
+    waiting = True
+    while waiting:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-    return selected
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+                if event.key == pygame.K_r:
+                    # Réinitialiser le jeu
+                    current_level_index = 0
+                    current_level = Level(
+                        current_level.platform_count,
+                        current_level.vertical_spacing,
+                        current_level.mobile_indices
+                    )
+                    platforms_reached = 0
+                    visited_platforms = set()
+                    player_pos.update(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150)
+                    player_vel.update(0, 0)
+                    can_jump = False
+                    game_over = False
+                    floating_texts.clear()
+                    waiting = False
 
-class Platform:
-    def __init__(self, x, y, width, height, color=(0, 255, 0)):
-        self.rect = pygame.Rect(x, y, width, height)
-        self.color = color
+# Boucle principale
+running = True
+while running:
+    dt = clock.tick(60) / 1000  # Durée d'une frame en secondes
 
-    def draw(self, surface):
-        pygame.draw.rect(surface, self.color, self.rect)
-
-# Create a platform
-platform = Platform(300, 500, 200, 20)
-
-
-
-def how_to_play():
-    running = True
-    screen.blit(fond, (0, 0))
-    black = (0, 0, 0)
-    keys = pygame.key.get_pressed()
-    pygame.display.set_caption("Bouncy Kingdom")
-    myfont = pygame.font.SysFont("Arial", 50,True)
-
-    while running:
-        keys = pygame.key.get_pressed()
-        labelC = myfont.render("Press C to increase horizontal strength", 1, black)
-        labelV = myfont.render("Press V to increase vertical strength", 1, black)
-        labelR = myfont.render("Press R to reset both strengths", 1, black)
-        labelSpace = myfont.render("Press Spacebar to jump", 1, black)
-
-        if keys[pygame.K_ESCAPE]:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
             running = False
-
-        screen.blit(labelC, (450, 200))
-        screen.blit(labelV, (470, 300))
-        screen.blit(labelR, (520, 400))
-        screen.blit(labelSpace, (550, 500))
-
-        # show the whole thing
-        pygame.display.flip()
-
-        # event loop
-        
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                raise SystemExit
-
-
-
-
-def game(queen):
-    running = True
-    clock = pygame.time.Clock()
-    dt = 0
-    pygame.display.set_caption("Bouncy Kingdom")
-
-
-    # gameplay practicality 
-    delay = 0
-    #    if delay > 0:
-    #        delay-=1
-
-    ### game setup
-    lives = 3
-    g = 2     # Gravity
-    jumping = False
-
-    # Character selection
-    screen.blit(fond,(0,0))
-    if queen: 
-        player = pygame.transform.scale(pygame.image.load("princesseeeeeeee.png"),(60,100))
-        playerleft = pygame.transform.scale(pygame.image.load("princesseeeeeeee.png"),(60,100))
-        playerright = pygame.transform.flip(player,1,0)
-        playerweight = 80
-    else :
-        player = pygame.transform.scale(pygame.image.load("Prince_png.png"),(50,100))
-        playerleft = pygame.transform.scale(pygame.image.load("Prince_png.png"),(50,100))
-        playerright = pygame.transform.flip(player,1,0)
-        playerweight = 100
-
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                running = False
+            if event.key == pygame.K_SPACE and can_jump:
+                player_vel.y = -400  # Hauteur de saut ajustée
+                can_jump = False
 
     keys = pygame.key.get_pressed()
-    posx = 0
-    posy = 0
-    rightfacing = 1
+    if keys[pygame.K_LEFT]:
+        player_vel.x = -300
+    elif keys[pygame.K_RIGHT]:
+        player_vel.x = 300
+    else:
+        player_vel.x = 0
 
-    #jump setup
-    verstr = 0
-    horstr = 0
-    velx = 0
-    vely = 0
+    player_vel.y += gravity * dt
+    player_pos += player_vel * dt
+    player_pos, player_vel = plateforme_collision(player_pos, player_vel, player_radius)
 
-    # coordinates
-    player_pos = [screen.get_width() // 2 + posx, screen.get_height() // 2 + posy]
-    center_player_coord = [screen.get_width() // 2 + player.get_width() // 2 + posx,
-                        screen.get_height() // 2 + player.get_height() // 2 + posy]
+    current_level.update_moving_platforms(dt)
+    check_level_completion()
+    if player_pos.y - player_radius > SCREEN_HEIGHT:
+        show_end_screen("Game Over ! Voulez-vous rejouer ?")
 
+    screen.fill(BACKGROUND_COLOR)
+    pygame.draw.circle(screen, PLAYER_COLOR, (int(player_pos.x), int(player_pos.y)), player_radius)
+    for idx, plat in enumerate(current_level.platforms):
+        color = MOVING_PLATFORM_COLOR if idx in current_level.moving_platforms else PLATFORM_COLOR
+        pygame.draw.rect(screen, color, plat)
 
-    while running:
-        keys = pygame.key.get_pressed()
+    # Afficher les textes flottants
+    for text in floating_texts[:]:
+        if not text.draw(screen):
+            floating_texts.remove(text)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-        if keys[pygame.K_ESCAPE]:
-            running = False
+    # Afficher les informations du jeu
+    draw_text(f"Niveau: {current_level_index + 1}", 10, 10)
+    draw_text(f"Plateformes atteintes: {platforms_reached}/{required_platforms[current_level_index]}", 10, 40)
+    draw_text(f"Wins: {wins}", 10, 70)
 
+    # Afficher les commandes
+    draw_controls()
 
-        screen.blit(fond, (0, 0))
-
-        player_pos = [screen.get_width() // 2 + posx, screen.get_height() // 2 + posy]
-        center_player_coord = [screen.get_width() // 2 + player.get_width() // 2 + posx,
-                            screen.get_height() // 2 + player.get_height() // 2 + posy]
-    ###update speeds
-        velx = velx*0.8
-        if vely != 0:
-            vely += g
-
-
-    ###update position
-        posx += velx
-        posy += vely
-
-
-    ###show character
-        screen.blit(player, dest = player_pos)
-
-
-        if player_pos[1] < screen.get_height() // 2:
-            print(player_pos)
-            print(screen.get_height() // 2 )
-            vely = 0
-
-        if player_pos[1] == 300:
-            running = False
-            screen.blit(player, dest=player_pos)
-
-    ###Floor
-        pygame.draw.rect(screen, "red", (0, player_pos[1]+player.get_height(), 2500, 4))
-
-        if horstr != 0 or verstr != 0:
-            pygame.draw.line(screen,"brown",(center_player_coord),(center_player_coord[0]-horstr/1000,center_player_coord[1]-verstr/1000),4)
-
-    ###Horizontal jump
-
-        if keys[pygame.K_c]:
-            horstr += 100000 * dt * rightfacing
-
-
-
-    ###Vertical jump
-        if keys[pygame.K_v]:
-            verstr += 100000 * dt
-
-        if keys[pygame.K_r]:
-            verstr = 0
-            horstr = 0
-
-        if keys[pygame.K_SPACE]:
-            vely -= sqrt(2*verstr/playerweight)
-            if horstr < 0:
-                velx -= -sqrt(2*abs(horstr)/playerweight) 
-            else:
-                velx -= sqrt(2*horstr/playerweight) 
-            horstr = 0
-            verstr = 0
-
-
-        if keys[pygame.K_LEFT] and delay == 0:
-            horstr = abs(horstr)
-            rightfacing = 1
-            player = playerleft 
-
-        if keys[pygame.K_RIGHT] and delay == 0:
-            horstr = -abs(horstr)
-            rightfacing = -1
-            player = playerright
-
-
-        if keys[pygame.K_UP]:
-            posy -= 300 * dt
-        if keys[pygame.K_DOWN] and player_pos[1] <= screen.get_height() // 2:
-            posy += 300 * dt
-        if keys[pygame.K_LEFT]:
-            posx -= 300 * dt
-        if keys[pygame.K_RIGHT]:
-            posx += 300 * dt
-
-        # flip() the display to put your work on screen
-        pygame.display.flip()
-
-        # limits FPS to 60
-        # dt is delta time in seconds since last frame, used for framerate-
-        dt = clock.tick(60) / 1000
-
-        pygame.draw
-
-
-
-
-
-
-def main_menu():
-    pygame.display.set_caption("Bouncy Kingdom")
-    running = True
-    player_image = character_selection_screen()
-    Queen = 1
-    pointer = 0
-    playbutton = pygame.image.load("Play_pas_appuye_DECOUPE.png")
-    girldisplay = pygame.image.load("princesseeeeeeee.png")
-    girlsize = 1
-    boydisplay =pygame.image.load("Prince_png.png")
-    boysize = 1
-    options = pygame.image.load("rouage_a_decouper.png")
-
-    while running:
-        global game
-        keys = pygame.key.get_pressed()
-        menu_mouse_pos = pygame.mouse.get_pos()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            
-                
-
-        screen.blit(fond, (0, 0))
-
-        colorabove = (50,230,60)
-        colorright = (50,230,60)
-        colorbelow = (50,230,60)
-        colorleft = (50,230,60)
-
-
-        playbutton = pygame.image.load("Play_pas_appuye_DECOUPE.png")
-        girldisplay = pygame.image.load("princesseeeeeeee.png")
-        boydisplay =pygame.image.load("Prince_png.png")
-        options = pygame.image.load("rouage_a_decouper.png")
-        options_size = (240,240)
-
-
-        if keys[pygame.K_UP]:
-            pointer = 1
-        if keys[pygame.K_RIGHT]:
-            pointer = 2
-        if keys[pygame.K_DOWN]:
-            pointer = 3
-        if keys[pygame.K_LEFT]:
-            pointer = 4
-
-
-        if pointer == 1:
-            colorabove = (50,150,60)
-            playbutton = pygame.image.load("play_appuye_DECOUPE.png")
-            if keys[pygame.K_SPACE]:
-                game(Queen)
-
-        elif pointer == 2:
-            colorright = (50,150,60)
-            girldisplay = pygame.transform.grayscale(girldisplay)
-            if keys[pygame.K_SPACE]:
-                Queen = 0
-                girlsize = 1
-                boysize = 1.2
-
-        elif pointer == 3:
-            colorbelow = (50,150,60)
-            options_size = (280,280)
-            if keys[pygame.K_SPACE]:
-                how_to_play()
-
-
-        elif pointer == 4:
-            colorleft = (50,150,60)
-            boydisplay = pygame.transform.grayscale(boydisplay)
-            if keys[pygame.K_SPACE]:
-                Queen = 1
-                boysize = 1
-                girlsize = 1.2
-        
-
-
-        
-        screen.blit(pygame.transform.scale(playbutton,(600,240)),dest=(screen.get_width()//2-1.2*playbutton.get_width()//2,30))
-        screen.blit(pygame.transform.scale(options,(options_size)),dest=(screen.get_width()//2-options_size[0]//2,screen.get_height()-options.get_height()))
-        screen.blit(pygame.transform.scale_by(girldisplay,girlsize),dest=(30,screen.get_height()//3))
-        screen.blit(pygame.transform.scale_by(boydisplay,boysize),dest=(screen.get_width()-boydisplay.get_width()-30,screen.get_height()//3))
-
-
-        pygame.draw.rect(screen,"blue",(screen.get_width() // 2,screen.get_height() // 2,50,50))
-        pygame.draw.rect(screen,colorabove,(screen.get_width() // 2,screen.get_height() // 2 - 50,50,50))
-        pygame.draw.rect(screen,colorright,(screen.get_width() // 2 +50,screen.get_height() // 2,50,50))
-        pygame.draw.rect(screen,colorbelow,(screen.get_width() // 2,screen.get_height() // 2 + 50,50,50))
-        pygame.draw.rect(screen,colorleft,(screen.get_width() // 2 - 50,screen.get_height() // 2,50,50))
-
-
-
-        pygame.display.flip()
-
-
-main_menu()
-game()
+    pygame.display.flip()
 
 
 pygame.quit()
