@@ -8,18 +8,20 @@ pygame.init()
 # Obtenir les dimensions de l'écran de l'utilisateur
 info = pygame.display.Info()
 SCREEN_WIDTH, SCREEN_HEIGHT = info.current_w, info.current_h
+background= pygame.transform.scale(pygame.image.load("643.jpg"), (SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Définir la fenêtre en plein écran avec les dimensions de l'écran
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+
 pygame.display.set_caption("Jeu de Plateforme")
 clock = pygame.time.Clock()
 
 # Couleurs
-BACKGROUND_COLOR = (20, 20, 20)
+BACKGROUND_COLOR= (20,20,20)
 PLAYER_COLOR = (255, 150, 100)
 PLATFORM_COLOR = (180, 180, 180)
 MOVING_PLATFORM_COLOR = (100, 180, 255)
-TEXT_COLOR = (255, 255, 255)
+TEXT_COLOR = (215, 215, 215)
 FLOATING_TEXT_COLOR = (0, 255, 0)
 
 # Joueur
@@ -56,7 +58,7 @@ class Level:
         for i in range(self.platform_count):
             width = random.randint(100, 200)
             while True:
-                x_offset = random.randint(-150, 150)
+                x_offset = random.randint(-300, 300)
                 new_x = max(0, min(SCREEN_WIDTH - width, last_x + x_offset))
                 overlap = any(abs(new_x - plat.x) < 80 and abs(y - plat.y) < 40 for plat in self.platforms)
                 if not overlap:
@@ -86,7 +88,7 @@ levels = [
 current_level_index = 0
 current_level = levels[current_level_index]
 platforms_reached = 0
-required_platforms = [10, 15, 20]
+required_platforms = [8, 8, 8]
 game_over = False
 
 # Police pour le texte
@@ -99,10 +101,10 @@ def draw_text(text, x, y, color=TEXT_COLOR):
 def draw_controls():
     controls_text = [
         "Commandes:",
-        "← : Aller à gauche",
-        "→ : Aller à droite",
+        "<- : Aller à gauche",
+        "-> : Aller à droite",
         "Espace : Sauter",
-        "Échap : Quitter le jeu"
+        "Échap or ALT + F4 : Quitter le jeu"
     ]
     for i, line in enumerate(controls_text):
         draw_text(line, 10, SCREEN_HEIGHT - 150 + i * 30)
@@ -212,7 +214,7 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
             if event.key == pygame.K_SPACE and can_jump:
-                player_vel.y = -400  # Hauteur de saut ajustée
+                player_vel.y = -500  # Hauteur de saut ajustée
                 can_jump = False
 
     keys = pygame.key.get_pressed()
@@ -232,7 +234,7 @@ while running:
     if player_pos.y - player_radius > SCREEN_HEIGHT:
         show_end_screen("Game Over ! Voulez-vous rejouer ?")
 
-    screen.fill(BACKGROUND_COLOR)
+    screen.fill((20, 20, 20))
     pygame.draw.circle(screen, PLAYER_COLOR, (int(player_pos.x), int(player_pos.y)), player_radius)
     for idx, plat in enumerate(current_level.platforms):
         color = MOVING_PLATFORM_COLOR if idx in current_level.moving_platforms else PLATFORM_COLOR
