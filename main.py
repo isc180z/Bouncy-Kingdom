@@ -13,18 +13,17 @@ def how_to_play():
     black = (0, 0, 0)
     keys = pygame.key.get_pressed()
     pygame.display.set_caption("Bouncy Kingdom")
-    myfont = pygame.font.SysFont("Arial", 50)
+    myfont = pygame.font.SysFont("Arial", 50,True)
 
     while running:
         labelC = myfont.render("Press C to increase horizontal strength", 1, black)
         labelV = myfont.render("Press V to increase vertical strength", 1, black)
-        labelR = myfont.render("Press R to reset any strength", 1, black)
+        labelR = myfont.render("Press R to reset both strengths", 1, black)
         labelSpace = myfont.render("Press Spacebar to jump", 1, black)
 
         if keys[pygame.K_ESCAPE]:
             running = False
 
-        # put the label object on the screen at point x=100, y=100
         screen.blit(labelC, (450, 200))
         screen.blit(labelV, (470, 300))
         screen.blit(labelR, (520, 400))
@@ -34,11 +33,10 @@ def how_to_play():
         pygame.display.flip()
 
         # event loop
-        while True:
-            for event in pygame.event.get():
-                # exit conditions --> windows titlebar x click
-                if event.type == pygame.QUIT:
-                    raise SystemExit
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                raise SystemExit
 
 
 
@@ -99,7 +97,6 @@ def game(queen):
 
         screen.blit(fond, (0, 0))
 
-        playerboi_pos = [0,0]
         player_pos = [screen.get_width() // 2 + posx, screen.get_height() // 2 + posy]
         center_player_coord = [screen.get_width() // 2 + player.get_width() // 2 + posx,
                             screen.get_height() // 2 + player.get_height() // 2 + posy]
@@ -117,7 +114,6 @@ def game(queen):
     ###show character
         screen.blit(player, dest = player_pos)
 
-        pygame.draw.circle(screen, "green", center_player_coord, 5)
 
         if player_pos[1] < screen.get_height() // 2:
             print(player_pos)
@@ -132,18 +128,18 @@ def game(queen):
         pygame.draw.rect(screen, "red", (0, player_pos[1]+player.get_height(), 2500, 4))
 
         if horstr != 0 or verstr != 0:
-            pygame.draw.line(screen,"brown",(center_player_coord),(center_player_coord[0]-horstr,center_player_coord[1]-verstr/1000),4)
+            pygame.draw.line(screen,"brown",(center_player_coord),(center_player_coord[0]-horstr/1000,center_player_coord[1]-verstr/1000),4)
 
     ###Horizontal jump
 
         if keys[pygame.K_c]:
-            horstr += 50 * dt * rightfacing
+            horstr += 100000 * dt * rightfacing
 
 
 
     ###Vertical jump
         if keys[pygame.K_v]:
-            verstr += 500000 * dt
+            verstr += 100000 * dt
 
         if keys[pygame.K_r]:
             verstr = 0
@@ -151,7 +147,10 @@ def game(queen):
 
         if keys[pygame.K_SPACE]:
             vely -= sqrt(2*verstr/playerweight)
-            velx -= sqrt(2*horstr/playerweight)
+            if horstr < 0:
+                velx -= -sqrt(2*abs(horstr)/playerweight) 
+            else:
+                velx -= sqrt(2*horstr/playerweight) 
             horstr = 0
             verstr = 0
 
