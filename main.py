@@ -5,7 +5,21 @@ pygame.init()
 screen = pygame.display.set_mode()
 clock = pygame.time.Clock()
 dt = 0
-fond = pygame.transform.scale(pygame.image.load("643.jpg"),(screen.get_width(),screen.get_height()))
+fond = pygame.transform.scale(pygame.image.load("BackGround.png"),(screen.get_width(),screen.get_height()))
+
+class Platform:
+    def __init__(self, x, y, width, height, color=(0, 255, 0)):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.color = color
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, self.color, self.rect)
+
+# Create a platform
+platform = Platform(300, 500, 200, 20)
+
+
+
 
 def how_to_play():
     running = True
@@ -16,6 +30,7 @@ def how_to_play():
     myfont = pygame.font.SysFont("Arial", 50,True)
 
     while running:
+        keys = pygame.key.get_pressed()
         labelC = myfont.render("Press C to increase horizontal strength", 1, black)
         labelV = myfont.render("Press V to increase vertical strength", 1, black)
         labelR = myfont.render("Press R to reset both strengths", 1, black)
@@ -212,6 +227,7 @@ def main_menu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            
                 
 
         screen.blit(fond, (0, 0))
